@@ -33,10 +33,10 @@ function gmp_render_shortcode($atts) {
     }
 
     wp_enqueue_style('gmp-style');
-    wp_enqueue_style('gmp-glightbox');
+    wp_enqueue_style('gmp-fancybox');
     wp_enqueue_style('gmp-swiper');
     wp_enqueue_script('gmp-script');
-    wp_enqueue_script('gmp-glightbox');
+    wp_enqueue_script('gmp-fancybox');
     wp_enqueue_script('gmp-swiper');
 
     wp_localize_script('gmp-script', 'gmpFront', [
@@ -80,14 +80,15 @@ function gmp_render_item($item, $view) {
     $wrapper = $view === 'slider' ? 'swiper-slide' : '';
     $previews = isset($item['previews']) && is_array($item['previews']) ? $item['previews'] : [];
     $thumb_src = gmp_resolve_thumb($item, $is_image, $previews, $ext);
-    $viewer = $thumb_src; // modal con la miniatura (real o fallback)
-    $viewer_is_lightbox = !empty($viewer);
+    $doc_viewer = $is_image ? '' : gmp_document_view_url($item['url'], $ext);
+    $viewer = $is_image ? $thumb_src : ($doc_viewer ?: $thumb_src);
+    $viewer_type = (!$is_image && $doc_viewer) ? 'iframe' : 'image';
     ?>
     <div class="<?php echo esc_attr(trim($classes . ' ' . $wrapper)); ?>">
         <div class="gmp-thumb-wrap">
             <div class="gmp-thumb-actions">
                 <?php if (!empty($viewer)) : ?>
-                    <a class="gmp-thumb-icon gmp-thumb-view gmp-lightbox" href="<?php echo esc_url($viewer); ?>" data-gallery="<?php echo esc_attr($item['path']); ?>" data-type="image" aria-label="<?php esc_attr_e('Ver', 'galeria-multimedia-pro'); ?>" data-tip="<?php esc_attr_e('Ver vista previa', 'galeria-multimedia-pro'); ?>">
+                    <a class="gmp-thumb-icon gmp-thumb-view" href="<?php echo esc_url($viewer); ?>" data-fancybox="gmp-modal" data-type="<?php echo esc_attr($viewer_type); ?>" aria-label="<?php esc_attr_e('Ver', 'galeria-multimedia-pro'); ?>" data-tip="<?php esc_attr_e('Ver vista previa', 'galeria-multimedia-pro'); ?>">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 5C6.5 5 2.5 9.5 2 12c.5 2.5 4.5 7 10 7s9.5-4.5 10-7c-.5-2.5-4.5-7-10-7Z" stroke="currentColor" stroke-width="2" fill="none"/>
                             <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
@@ -106,8 +107,12 @@ function gmp_render_item($item, $view) {
             <?php if ($is_image) : ?>
                 <img src="<?php echo esc_url($item['url']); ?>" alt="<?php echo esc_attr($item['name']); ?>" loading="lazy" />
             <?php else : ?>
-                <div class="gmp-doc-single">
-                    <img src="<?php echo esc_url($thumb_src); ?>" alt="<?php echo esc_attr($item['name']); ?>" loading="lazy" />
+                <div class="gmp-doc-single" style="background-image:url('<?php echo esc_url($thumb_src); ?>');">
+                    <?php if ($doc_viewer) : ?>
+                        <iframe class="gmp-doc-iframe-thumb" src="<?php echo esc_url($doc_viewer); ?>" loading="lazy" allowfullscreen></iframe>
+                    <?php else : ?>
+                        <div class="gmp-doc-fallback"><?php echo esc_html(strtoupper($ext)); ?></div>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
         </div>
@@ -116,11 +121,18 @@ function gmp_render_item($item, $view) {
 }
 
 /**
- * URL de visualizador para documentos no imagen.
+ * Devuelve URL para el visor embebido (iframe) de documentos.
  */
-function gmp_viewer_url($url, $ext, $embed = false) {
-    // Sin visor externo obligatorio: devolvemos URL directa.
-    return $url;
+function gmp_document_view_url($url, $ext) {
+    $ext = strtolower($ext);
+    $office = ['doc','docx','xls','xlsx','ppt','pptx'];
+    if ($ext === 'pdf') {
+        return $url;
+    }
+    if (in_array($ext, $office, true)) {
+        return 'https://view.officeapps.live.com/op/embed.aspx?src=' . rawurlencode($url);
+    }
+    return '';
 }
 
 /**

@@ -6,6 +6,9 @@
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 20px;
 }
+.fancybox__content{
+padding: 0 !important;
+}
 .gmp-panel {
     background: #fff;
     border: 1px solid #e2e8f0;
@@ -264,13 +267,22 @@
     overflow: hidden;
     background: linear-gradient(135deg, #0b1222, #0d182f);
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    max-height: 220px;
+    background-size: cover;
+    background-position: center;
 }
-.gmp-doc-single img {
+.gmp-doc-iframe-thumb {
     position: absolute;
-    top: 0; left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    border: none;
+    background: #0b1222;
+}
+.gmp-eade-embed {
+    margin-top: 12px;
 }
 .gmp-doc-fallback {
     position: absolute;
@@ -282,6 +294,12 @@
     font-weight: 800;
     letter-spacing: 1px;
     background: linear-gradient(120deg, #1f2937, #111827);
+}
+.gmp-doc-frame {
+    margin-top: 12px;
+    border: none;
+    width: 100%;
+    min-height: 400px;
 }
 .gmp-load-more {
     margin: 16px auto;

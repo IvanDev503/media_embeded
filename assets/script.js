@@ -1,7 +1,21 @@
 (function ($) {
     function initLightbox() {
-        if (typeof GLightbox !== 'undefined') {
-            GLightbox({ selector: '.gmp-lightbox' });
+        if (typeof Fancybox !== 'undefined') {
+            Fancybox.bind('[data-fancybox]', {
+                mainClass: 'gmp-fancybox',
+                padding: 0,
+                trapFocus: false,
+                on: {
+                    reveal: () => {
+                        if (document.activeElement) {
+                            document.activeElement.blur();
+                        }
+                    }
+                }
+            });
+            $(document).on('click', '.gmp-thumb-view', function () {
+                this.blur();
+            });
         }
     }
 
