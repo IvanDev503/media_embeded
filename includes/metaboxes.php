@@ -59,23 +59,15 @@ function cmp_render_metabox($post) {
     <div class="cmp-metabox-wrapper">
         <div class="cmp-dropzone" id="cmp-dropzone-images" data-type="image" data-post="<?php echo esc_attr($post->ID); ?>">
             <h4><?php esc_html_e('Arrastra tus imágenes aquí', 'carpetas-multimedia-pro'); ?></h4>
-            <p><?php esc_html_e('Formatos permitidos: JPG, PNG, GIF, WebP. Límite 1GB por archivo.', 'carpetas-multimedia-pro'); ?></p>
-            <div class="cmp-progress" aria-hidden="true">
-                <div class="cmp-progress-bar"></div>
-                <span class="cmp-progress-text">0%</span>
-            </div>
+            <p><?php esc_html_e('Formatos permitidos: JPG, PNG, GIF, WebP.', 'carpetas-multimedia-pro'); ?></p>
         </div>
 
         <div class="cmp-dropzone" id="cmp-dropzone-documents" data-type="document" data-post="<?php echo esc_attr($post->ID); ?>">
             <h4><?php esc_html_e('Arrastra tus documentos aquí', 'carpetas-multimedia-pro'); ?></h4>
-            <p><?php esc_html_e('Formatos permitidos: PDF, DOCX, XLSX, ZIP, PPTX. Límite 1GB por archivo.', 'carpetas-multimedia-pro'); ?></p>
-            <div class="cmp-progress" aria-hidden="true">
-                <div class="cmp-progress-bar"></div>
-                <span class="cmp-progress-text">0%</span>
-            </div>
+            <p><?php esc_html_e('Formatos permitidos: PDF, DOCX, XLSX, ZIP, PPTX.', 'carpetas-multimedia-pro'); ?></p>
         </div>
 
-        <div class="cmp-file-list" data-type="image">
+        <div class="cmp-file-list">
             <h4><?php esc_html_e('Imágenes cargadas', 'carpetas-multimedia-pro'); ?></h4>
             <div class="cmp-file-grid">
                 <?php foreach ($images as $image_id) :
@@ -89,7 +81,7 @@ function cmp_render_metabox($post) {
             </div>
         </div>
 
-        <div class="cmp-file-list" data-type="document">
+        <div class="cmp-file-list">
             <h4><?php esc_html_e('Documentos cargados', 'carpetas-multimedia-pro'); ?></h4>
             <div class="cmp-file-grid">
                 <?php foreach ($documents as $doc_id) :
