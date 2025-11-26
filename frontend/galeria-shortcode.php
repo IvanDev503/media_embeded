@@ -28,6 +28,10 @@ function gmp_render_shortcode($atts) {
     $files = gmp_fetch_files($folder);
     $combined = array_merge($files['imagenes'], $files['documentos']);
 
+    if (empty($combined)) {
+        return '<p class="gmp-empty">' . esc_html__('Esta carpeta no tiene archivos aún.', 'galeria-multimedia-pro') . '</p>';
+    }
+
     wp_enqueue_style('gmp-style');
     wp_enqueue_style('gmp-glightbox');
     wp_enqueue_style('gmp-swiper');

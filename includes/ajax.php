@@ -11,6 +11,46 @@ function gmp_sanitize_folder($folder) {
 }
 
 /**
+ * Garantiza que la carpeta base exista e incluya un index de bloqueo.
+ */
+function gmp_prepare_base_dir() {
+    $base = gmp_get_base_dir();
+    if (!file_exists($base)) {
+        wp_mkdir_p($base);
+    }
+    if (is_dir($base)) {
+        $index = trailingslashit($base) . 'index.html';
+        if (!file_exists($index)) {
+            file_put_contents($index, '');
+        }
+    }
+    return is_dir($base);
+}
+
+/**
+ * Garantiza estructura de carpeta con subdirectorios.
+ */
+function gmp_prepare_folder_structure($folder) {
+    if (empty($folder)) {
+        return false;
+    }
+    if (!gmp_prepare_base_dir()) {
+        return false;
+    }
+    $base = gmp_get_base_dir();
+    $path = trailingslashit($base) . $folder;
+    $img  = trailingslashit($path) . 'imagenes';
+    $doc  = trailingslashit($path) . 'documentos';
+    if (!file_exists($img)) {
+        wp_mkdir_p($img);
+    }
+    if (!file_exists($doc)) {
+        wp_mkdir_p($doc);
+    }
+    return is_dir($img) && is_dir($doc);
+}
+
+/**
  * Crea una nueva carpeta con subdirectorios.
  */
 function gmp_ajax_create_folder() {
@@ -24,15 +64,7 @@ function gmp_ajax_create_folder() {
         wp_send_json_error(__('Nombre de carpeta inválido.', 'galeria-multimedia-pro'));
     }
 
-    $base = gmp_get_base_dir();
-    $path = trailingslashit($base) . $folder;
-    $img  = trailingslashit($path) . 'imagenes';
-    $doc  = trailingslashit($path) . 'documentos';
-
-    if (!file_exists($path)) {
-        wp_mkdir_p($img);
-        wp_mkdir_p($doc);
-    }
+    gmp_prepare_folder_structure($folder);
 
     wp_send_json_success([
         'folder' => $folder,
@@ -72,13 +104,17 @@ function gmp_ajax_upload() {
     }
 
     $allowed_images = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    $allowed_docs   = ['application/pdf', 'application/zip', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msword', 'application/vnd.ms-excel'];
+    $allowed_docs   = ['application/pdf', 'application/zip', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msword', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
     $max_size       = 1024 * 1024 * 1024; // 1GB por archivo.
 
     $file     = $_FILES['file'];
     $tmp_name = $file['tmp_name'];
     $filetype = wp_check_filetype_and_ext($tmp_name, $file['name']);
     $mime     = $filetype['type'] ?: $file['type'];
+
+    if (!gmp_prepare_folder_structure($folder)) {
+        wp_send_json_error(__('No se pudo preparar la carpeta en uploads/galerias.', 'galeria-multimedia-pro'));
+    }
 
     if ($file['size'] > $max_size) {
         wp_send_json_error(__('Archivo excede 1GB.', 'galeria-multimedia-pro'));
@@ -178,6 +214,12 @@ add_action('wp_ajax_nopriv_gmp_frontend_page', 'gmp_ajax_frontend_page');
  * Genera listado de archivos.
  */
 function gmp_fetch_files($folder) {
+    if (!gmp_prepare_base_dir()) {
+        return [
+            'imagenes'   => [],
+            'documentos' => [],
+        ];
+    }
     $base = gmp_get_base_dir();
     $path = trailingslashit($base) . $folder;
     $out  = [
@@ -226,6 +268,9 @@ function gmp_sort_by_name($a, $b) {
  * Devuelve directorio destino seguro.
  */
 function gmp_target_dir($folder, $type) {
+    if (!gmp_prepare_folder_structure($folder)) {
+        return false;
+    }
     $base = gmp_get_base_dir();
     $path = trailingslashit($base) . $folder . '/' . $type;
     if (!is_dir($path)) {
@@ -265,12 +310,14 @@ function gmp_handle_zip($tmp_name, $folder, $type, $allowed_images, $allowed_doc
         if (!$stream) {
             continue;
         }
-        $contents = stream_get_contents($stream);
-        fclose($stream);
-        $tmp = wp_tempnam($name);
-        file_put_contents($tmp, $contents);
 
-        $mime = wp_check_filetype($name)['type'];
+        $mime_info = wp_check_filetype($name);
+        $mime = $mime_info['type'];
+        if (empty($mime)) {
+            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+            $mimes = wp_get_mime_types();
+            $mime = isset($mimes[$ext]) ? $mimes[$ext] : '';
+        }
         $is_img = in_array($mime, $allowed_images, true);
         $dest_type = $is_img ? 'imagenes' : 'documentos';
         if ($type === 'imagenes' && !$is_img) {
@@ -286,13 +333,24 @@ function gmp_handle_zip($tmp_name, $folder, $type, $allowed_images, $allowed_doc
         }
         $filename = wp_unique_filename($dir, sanitize_file_name(basename($name)));
         $dest = trailingslashit($dir) . $filename;
-        file_put_contents($dest, $contents);
+        $temp_file = wp_tempnam($filename);
+        $dest_handle = fopen($temp_file, 'w');
+        if ($dest_handle) {
+            stream_copy_to_stream($stream, $dest_handle);
+            fclose($dest_handle);
+            rename($temp_file, $dest);
+        } else {
+            fclose($stream);
+            unlink($temp_file);
+            continue;
+        }
+        fclose($stream);
         $added[] = [
             'file' => gmp_public_url($dest),
             'name' => $filename,
             'type' => $dest_type,
+            'type_label' => $is_img ? 'imagen' : 'documento',
         ];
-        unlink($tmp);
     }
     $zip->close();
     return ['files' => $added];

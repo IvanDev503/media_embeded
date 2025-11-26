@@ -95,3 +95,6 @@ add_action('admin_menu', 'gmp_register_menu');
 require_once GMP_PLUGIN_DIR . 'admin/uploader.php';
 require_once GMP_PLUGIN_DIR . 'frontend/galeria-shortcode.php';
 require_once GMP_PLUGIN_DIR . 'includes/ajax.php';
+
+// Asegura carpeta base también en cada carga.
+add_action('init', 'gmp_prepare_base_dir');
