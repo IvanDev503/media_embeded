@@ -1,0 +1,1 @@
+// JavaScript for pagination, preview, and interactivity
