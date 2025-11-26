@@ -1,1 +1,43 @@
-/* Styles for grid, slider, and lightbox */
+/* Estilos generales */
+.cmp-metabox-wrapper { display: grid; gap: 16px; }
+.cmp-dropzone { border: 2px dashed #cbd5e1; padding: 20px; text-align: center; background: #f8fafc; border-radius: 12px; }
+.cmp-dropzone h4 { margin: 0 0 6px; }
+.cmp-progress { margin-top: 10px; width: 100%; background: #e2e8f0; border-radius: 999px; height: 10px; position: relative; overflow: hidden; opacity: 0; transition: opacity .2s ease; }
+.cmp-progress.is-active { opacity: 1; }
+.cmp-progress-bar { height: 100%; width: 0; background: linear-gradient(90deg, #0ea5e9, #38bdf8); transition: width .2s ease; }
+.cmp-progress-text { position: absolute; top: -22px; right: 0; font-size: 12px; color: #475569; }
+.cmp-file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.cmp-file-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05); text-align: center; }
+.cmp-thumb { width: 100%; padding-top: 70%; background-size: cover; background-position: center; border-radius: 8px; margin-bottom: 8px; }
+.cmp-doc-thumb { background-color: #f1f5f9; background-size: 48px; background-repeat: no-repeat; background-position: center; }
+.cmp-shortcodes { border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; background: #fff; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05); }
+.cmp-shortcodes label { display: block; margin: 10px 0 0; font-weight: 600; }
+.cmp-shortcode-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+.cmp-shortcode-field { width: 320px; max-width: 100%; }
+
+/* Frontend */
+.cmp-gallery { margin: 24px 0; }
+.cmp-grid-wrapper { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.cmp-grid-item { position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1); display: block; }
+.cmp-grid-item img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
+.cmp-grid-item:hover img { transform: scale(1.05); }
+
+.cmp-btn { background: #0ea5e9; color: #fff; padding: 10px 16px; border: none; border-radius: 10px; text-decoration: none; display: inline-block; transition: background .2s ease, transform .2s ease; cursor: pointer; }
+.cmp-btn:hover { background: #0284c7; transform: translateY(-1px); }
+.cmp-btn.cmp-secondary { background: #475569; }
+
+.cmp-documents { display: grid; gap: 14px; margin-top: 20px; }
+.cmp-doc-card { display: grid; grid-template-columns: 80px 1fr; gap: 12px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05); align-items: center; }
+.cmp-doc-icon { width: 72px; height: 72px; background-size: 56px; background-position: center; background-repeat: no-repeat; border-radius: 12px; background-color: #e2e8f0; }
+.cmp-doc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+.cmp-load-more, .cmp-load-more-docs { margin-top: 16px; }
+
+/* Swiper overrides */
+.cmp-swiper { width: 100%; height: auto; }
+.cmp-swiper .swiper-slide { display: flex; justify-content: center; }
+
+@media (max-width: 640px) {
+    .cmp-grid-wrapper { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .cmp-doc-card { grid-template-columns: 60px 1fr; }
+}
