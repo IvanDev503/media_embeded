@@ -55,7 +55,7 @@
             const type = $(this).data('type');
             const bar = $(this).siblings('.gmp-progress').find('.gmp-bar');
             new Dropzone(this, {
-                url: gmpAdmin.ajax,
+                url: `${gmpAdmin.ajax}?action=gmp_upload`,
                 paramName: 'file',
                 maxFilesize: 1024,
                 timeout: 0,
@@ -73,6 +73,7 @@
                         alert(gmpAdmin.strings.noFolder);
                         return;
                     }
+                    formData.append('action', 'gmp_upload');
                     formData.append('folder', folder);
                 },
                 uploadprogress: function (_file, progress) {
