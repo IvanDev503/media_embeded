@@ -1,2 +1,0 @@
-<?php
-// CPT logic here
