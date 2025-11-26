@@ -262,7 +262,7 @@ padding: 0 !important;
 .gmp-doc-card { display: flex; flex-direction: column; gap: 0; height: 100%; }
 .gmp-doc-single {
     position: relative;
-    padding-top: 56.25%;
+    padding: 3px;
     border-radius: 12px;
     overflow: hidden;
     background: linear-gradient(135deg, #0b1222, #0d182f);
