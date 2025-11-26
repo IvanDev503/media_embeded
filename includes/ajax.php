@@ -104,13 +104,31 @@ function gmp_ajax_upload() {
     }
 
     $allowed_images = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    $allowed_docs   = ['application/pdf', 'application/zip', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/msword', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+    $allowed_docs   = [
+        'application/pdf',
+        'application/zip',
+        'application/x-zip',
+        'application/x-zip-compressed',
+        'multipart/x-zip',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/msword',
+        'application/vnd.ms-excel',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    ];
     $max_size       = 1024 * 1024 * 1024; // 1GB por archivo.
 
     $file     = $_FILES['file'];
     $tmp_name = $file['tmp_name'];
     $filetype = wp_check_filetype_and_ext($tmp_name, $file['name']);
     $mime     = $filetype['type'] ?: $file['type'];
+
+    // Normaliza ZIP aunque llegue con mime alternativo o sin detección.
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if ($ext === 'zip') {
+        $mime = 'application/zip';
+    }
 
     if (!gmp_prepare_folder_structure($folder)) {
         wp_send_json_error(__('No se pudo preparar la carpeta en uploads/galerias.', 'galeria-multimedia-pro'));
