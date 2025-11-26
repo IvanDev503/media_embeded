@@ -263,11 +263,43 @@ function gmp_fetch_files($folder) {
         foreach ($files as $file) {
             $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
             $url = gmp_public_url(trailingslashit($dir) . $file);
+            $full = trailingslashit($dir) . $file;
+            $previews = [];
+            // Para documentos, intenta buscar miniaturas asociadas en /imagenes con el mismo prefijo.
+            if ($key === 'documentos') {
+                $preview_dir = trailingslashit($path) . 'imagenes';
+                $base_name = pathinfo($file, PATHINFO_FILENAME);
+                if (is_dir($preview_dir)) {
+                    $handle = opendir($preview_dir);
+                    if ($handle) {
+                        while (($pfile = readdir($handle)) !== false) {
+                            if ($pfile === '.' || $pfile === '..') {
+                                continue;
+                            }
+                            $pext = strtolower(pathinfo($pfile, PATHINFO_EXTENSION));
+                            if (!in_array($pext, ['jpg','jpeg','png','webp','gif'], true)) {
+                                continue;
+                            }
+                            if (stripos($pfile, $base_name) === 0) {
+                                $previews[] = gmp_public_url(trailingslashit($preview_dir) . $pfile);
+                            }
+                        }
+                        closedir($handle);
+                    }
+                }
+            } else {
+                $previews[] = $url;
+            }
             $out[$key][] = [
                 'name' => $file,
                 'ext'  => $ext,
                 'path' => $folder . '/' . $meta['dir'] . '/' . $file,
                 'url'  => $url,
+                'size' => file_exists($full) ? filesize($full) : 0,
+                'previews' => $previews,
+                'thumb' => $key === 'imagenes'
+                    ? $url
+                    : (!empty($previews) ? $previews[0] : ''),
             ];
         }
     }
@@ -276,6 +308,15 @@ function gmp_fetch_files($folder) {
     usort($out['documentos'], 'gmp_sort_by_name');
 
     return $out;
+}
+
+function gmp_human_size($bytes) {
+    if ($bytes <= 0) {
+        return '0 B';
+    }
+    $units = ['B','KB','MB','GB'];
+    $power = floor(log($bytes, 1024));
+    return round($bytes / pow(1024, $power), 1) . ' ' . $units[$power];
 }
 
 function gmp_sort_by_name($a, $b) {

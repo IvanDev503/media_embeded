@@ -29,7 +29,7 @@ function gmp_render_shortcode($atts) {
     $combined = array_merge($files['imagenes'], $files['documentos']);
 
     if (empty($combined)) {
-        return '<p class="gmp-empty">' . esc_html__('Esta carpeta no tiene archivos aún.', 'galeria-multimedia-pro') . '</p>';
+        return '<p class="gmp-empty">' . esc_html__('Esta carpeta no tiene archivos aun.', 'galeria-multimedia-pro') . '</p>';
     }
 
     wp_enqueue_style('gmp-style');
@@ -63,7 +63,7 @@ function gmp_render_shortcode($atts) {
         <?php endif; ?>
 
         <?php if (count($combined) > $per) : ?>
-            <button class="gmp-load-more" data-page="1"><?php esc_html_e('Cargar más', 'galeria-multimedia-pro'); ?></button>
+            <button class="gmp-load-more" data-page="1"><?php esc_html_e('Cargar mas', 'galeria-multimedia-pro'); ?></button>
         <?php endif; ?>
     </div>
     <?php
@@ -71,27 +71,79 @@ function gmp_render_shortcode($atts) {
 }
 
 /**
- * Renderiza un archivo según vista.
+ * Renderiza un archivo segun vista.
  */
 function gmp_render_item($item, $view) {
     $ext = strtolower($item['ext']);
     $is_image = in_array($ext, ['jpg','jpeg','png','webp','gif'], true);
     $classes = $is_image ? 'gmp-item gmp-image' : 'gmp-item gmp-doc';
     $wrapper = $view === 'slider' ? 'swiper-slide' : '';
+    $previews = isset($item['previews']) && is_array($item['previews']) ? $item['previews'] : [];
+    $thumb_src = gmp_resolve_thumb($item, $is_image, $previews, $ext);
+    $viewer = $thumb_src; // modal con la miniatura (real o fallback)
+    $viewer_is_lightbox = !empty($viewer);
     ?>
     <div class="<?php echo esc_attr(trim($classes . ' ' . $wrapper)); ?>">
-        <?php if ($is_image) : ?>
-            <a href="<?php echo esc_url($item['url']); ?>" class="gmp-lightbox" data-gallery="<?php echo esc_attr($item['path']); ?>">
-                <img src="<?php echo esc_url($item['url']); ?>" alt="<?php echo esc_attr($item['name']); ?>" loading="lazy" />
-            </a>
-        <?php else : ?>
-            <div class="gmp-doc-icon">📄</div>
-            <p class="gmp-doc-name"><?php echo esc_html($item['name']); ?></p>
-            <div class="gmp-doc-actions">
-                <a class="button" href="<?php echo esc_url($item['url']); ?>" target="_blank" rel="noopener">Ver</a>
-                <a class="button button-primary" href="<?php echo esc_url($item['url']); ?>" download>Descargar</a>
+        <div class="gmp-thumb-wrap">
+            <div class="gmp-thumb-actions">
+                <?php if (!empty($viewer)) : ?>
+                    <a class="gmp-thumb-icon gmp-thumb-view gmp-lightbox" href="<?php echo esc_url($viewer); ?>" data-gallery="<?php echo esc_attr($item['path']); ?>" data-type="image" aria-label="<?php esc_attr_e('Ver', 'galeria-multimedia-pro'); ?>" data-tip="<?php esc_attr_e('Ver vista previa', 'galeria-multimedia-pro'); ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 5C6.5 5 2.5 9.5 2 12c.5 2.5 4.5 7 10 7s9.5-4.5 10-7c-.5-2.5-4.5-7-10-7Z" stroke="currentColor" stroke-width="2" fill="none"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+                        </svg>
+                    </a>
+                <?php endif; ?>
+                <a class="gmp-thumb-icon gmp-thumb-download" href="<?php echo esc_url($item['url']); ?>" download aria-label="<?php esc_attr_e('Descargar', 'galeria-multimedia-pro'); ?>" data-tip="<?php esc_attr_e('Descargar archivo', 'galeria-multimedia-pro'); ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M7 12l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5 19h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </a>
             </div>
-        <?php endif; ?>
+
+            <?php if ($is_image) : ?>
+                <img src="<?php echo esc_url($item['url']); ?>" alt="<?php echo esc_attr($item['name']); ?>" loading="lazy" />
+            <?php else : ?>
+                <div class="gmp-doc-single">
+                    <img src="<?php echo esc_url($thumb_src); ?>" alt="<?php echo esc_attr($item['name']); ?>" loading="lazy" />
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
     <?php
+}
+
+/**
+ * URL de visualizador para documentos no imagen.
+ */
+function gmp_viewer_url($url, $ext, $embed = false) {
+    // Sin visor externo obligatorio: devolvemos URL directa.
+    return $url;
+}
+
+/**
+ * Devuelve la miniatura a usar (imagen o fallback).
+ */
+function gmp_resolve_thumb($item, $is_image, $previews, $ext) {
+    if ($is_image) {
+        return $item['url'];
+    }
+    foreach ($previews as $p) {
+        if (!empty($p)) {
+            return $p;
+        }
+    }
+    return gmp_fallback_preview($ext);
+}
+
+/**
+ * Miniatura de respaldo en SVG base64 (data URI) para documentos sin preview.
+ */
+function gmp_fallback_preview($ext) {
+    $label = strtoupper($ext);
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1222" offset="0"/><stop stop-color="#0d182f" offset="1"/></linearGradient></defs><rect width="800" height="450" fill="url(#g)"/><text x="50%" y="55%" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="72" font-weight="700" text-anchor="middle">' . $label . '</text></svg>';
+    $encoded = base64_encode($svg);
+    return 'data:image/svg+xml;base64,' . $encoded;
 }

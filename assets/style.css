@@ -42,9 +42,52 @@
     border-radius: 12px;
     background: #f8fafc;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    max-height: 260px;
+    overflow-y: auto;
     color: #475569;
+}
+.gmp-dropzone .dz-message {
+    text-align: center;
+    padding: 16px 10px;
+    background: #e2e8f0;
+    border-radius: 8px;
+    margin: 0 6px;
+}
+.gmp-dropzone .dz-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    margin: 0 6px 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+}
+.gmp-dropzone .dz-error-message,
+.gmp-dropzone .dz-success-mark,
+.gmp-dropzone .dz-error-mark {
+    display: none;
+}
+.gmp-dropzone .dz-progress {
+    flex: 1;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+}
+.gmp-dropzone .dz-upload {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #06b6d4);
+}
+.gmp-dropzone .dz-remove {
+    color: #e11d48;
+    text-decoration: none;
+    font-weight: 600;
 }
 .gmp-progress {
     margin-top: 8px;
@@ -65,6 +108,9 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 6px;
 }
 .gmp-file {
     border: 1px solid #e2e8f0;
@@ -82,6 +128,26 @@
 .gmp-file .gmp-delete {
     color: #e11d48;
     cursor: pointer;
+}
+.gmp-file-thumb {
+    width: 100%;
+    height: 120px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #0b1222, #0d182f);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e2e8f0;
+    font-weight: 800;
+    letter-spacing: 1px;
+    overflow: hidden;
+}
+.gmp-thumb-placeholder {
+    background: rgba(0,0,0,0.35);
+    padding: 6px 10px;
+    border-radius: 6px;
 }
 
 /* Frontend */
@@ -110,16 +176,112 @@
     object-fit: cover;
     display: block;
 }
-.gmp-doc {
-    padding: 14px;
-    text-align: center;
+.gmp-thumb-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
-.gmp-doc-icon { font-size: 40px; }
-.gmp-doc-actions {
-    margin-top: 10px;
+.gmp-thumb-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
     display: flex;
+    gap: 6px;
+    z-index: 3;
+}
+.gmp-thumb-icon {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    gap: 8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.86);
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.22);
+    position: relative;
+}
+.gmp-thumb-icon::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: -6px;
+    right: 110%;
+    white-space: nowrap;
+    background: #0f172a;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    pointer-events: none;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+}
+.gmp-thumb-icon:hover {
+    background: rgba(14, 165, 233, 0.95);
+}
+.gmp-thumb-icon:hover::after {
+    opacity: 1;
+    transform: translateY(-4px);
+}
+.gmp-thumb-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.gmp-thumb-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 6px;
+    z-index: 3;
+}
+.gmp-thumb-icon {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.82);
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.22);
+}
+.gmp-thumb-icon:hover {
+    background: rgba(14, 165, 233, 0.95);
+}
+.gmp-doc { padding: 0; }
+.gmp-doc-card { display: flex; flex-direction: column; gap: 0; height: 100%; }
+.gmp-doc-single {
+    position: relative;
+    padding-top: 56.25%;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0b1222, #0d182f);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+}
+.gmp-doc-single img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.gmp-doc-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e2e8f0;
+    font-weight: 800;
+    letter-spacing: 1px;
+    background: linear-gradient(120deg, #1f2937, #111827);
 }
 .gmp-load-more {
     margin: 16px auto;

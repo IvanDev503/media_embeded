@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: Galeria Multimedia Pro
- * Description: Gestiona carpetas físicas en /uploads/galerias/ con subidas masivas y shortcodes responsivos (grid/slider).
- * Version: 1.0.0
- * Author: OpenAI
+ * Description: Gestiona carpetas fisicas en /uploads/galerias/ con subidas masivas y shortcodes responsivos (grid/slider).
+ * Version: 1.1.0
+ * Author: IvanDev
  * Text Domain: galeria-multimedia-pro
  */
 
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 define('GMP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GMP_PLUGIN_URL', plugin_dir_url(__FILE__));
 
-// Directorio base para las carpetas físicas.
+// Directorio base para las carpetas fisicas.
 function gmp_get_base_dir() {
     $uploads = wp_upload_dir();
     return trailingslashit($uploads['basedir']) . 'galerias/';
@@ -26,7 +26,7 @@ function gmp_get_base_url() {
     return trailingslashit($uploads['baseurl']) . 'galerias/';
 }
 
-// Asegura la carpeta base en activación.
+// Asegura la carpeta base en activacion.
 function gmp_activate() {
     $base = gmp_get_base_dir();
     if (!file_exists($base)) {
@@ -60,9 +60,11 @@ function gmp_admin_assets($hook) {
         return;
     }
     wp_enqueue_style('gmp-style', GMP_PLUGIN_URL . 'assets/style.css', [], '1.0.0');
+    wp_enqueue_style('sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css', [], '11.12.0');
     wp_enqueue_script('dropzone', 'https://cdn.jsdelivr.net/npm/dropzone@6.0.0-beta.2/dist/dropzone-min.js', [], '6.0.0-beta.2', true);
     wp_enqueue_style('dropzone', 'https://cdn.jsdelivr.net/npm/dropzone@6.0.0-beta.2/dist/dropzone.css', [], '6.0.0-beta.2');
-    wp_enqueue_script('gmp-admin', GMP_PLUGIN_URL . 'assets/admin.js', ['jquery', 'dropzone'], '1.0.0', true);
+    wp_enqueue_script('sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js', [], '11.12.0', true);
+    wp_enqueue_script('gmp-admin', GMP_PLUGIN_URL . 'assets/admin.js', ['jquery', 'dropzone', 'sweetalert2'], '1.0.1', true);
 
     wp_localize_script('gmp-admin', 'gmpAdmin', [
         'ajax'   => admin_url('admin-ajax.php'),
@@ -71,18 +73,24 @@ function gmp_admin_assets($hook) {
         'strings' => [
             'creating' => __('Creando carpeta...', 'galeria-multimedia-pro'),
             'uploading' => __('Subiendo archivos...', 'galeria-multimedia-pro'),
-            'deleteConfirm' => __('¿Eliminar este archivo?', 'galeria-multimedia-pro'),
+            'deleteConfirm' => __('Eliminar este archivo?', 'galeria-multimedia-pro'),
+            'deleted' => __('Archivo eliminado.', 'galeria-multimedia-pro'),
             'noFolder' => __('Primero crea o selecciona una carpeta.', 'galeria-multimedia-pro'),
+            'uploadOk' => __('Archivos subidos correctamente.', 'galeria-multimedia-pro'),
+            'uploadError' => __('No se pudo subir el archivo. Revisa el error y vuelve a intentar.', 'galeria-multimedia-pro'),
+            'removeFile' => __('Quitar', 'galeria-multimedia-pro'),
+            'server403' => __('403: el servidor rechazo la peticion. Refresca la pagina o revisa tu inicio de sesion.', 'galeria-multimedia-pro'),
+            'folderCreated' => __('Carpeta creada.', 'galeria-multimedia-pro'),
         ],
     ]);
 }
 add_action('admin_enqueue_scripts', 'gmp_admin_assets');
 
-// Página de administración.
+// Pagina de administracion.
 function gmp_register_menu() {
     add_menu_page(
-        __('Galería Multimedia', 'galeria-multimedia-pro'),
-        __('Galería Multimedia', 'galeria-multimedia-pro'),
+        __('Galeria Multimedia', 'galeria-multimedia-pro'),
+        __('Galeria Multimedia', 'galeria-multimedia-pro'),
         'upload_files',
         'gmp-galerias',
         'gmp_render_admin_page',
@@ -96,5 +104,5 @@ require_once GMP_PLUGIN_DIR . 'admin/uploader.php';
 require_once GMP_PLUGIN_DIR . 'frontend/galeria-shortcode.php';
 require_once GMP_PLUGIN_DIR . 'includes/ajax.php';
 
-// Asegura carpeta base también en cada carga.
+// Asegura carpeta base tambien en cada carga.
 add_action('init', 'gmp_prepare_base_dir');
