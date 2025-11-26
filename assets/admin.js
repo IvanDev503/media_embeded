@@ -55,15 +55,17 @@
             const type = $(this).data('type');
             const bar = $(this).siblings('.gmp-progress').find('.gmp-bar');
             new Dropzone(this, {
-                url: `${gmpAdmin.ajax}?action=gmp_upload`,
+                url: gmpAdmin.ajax,
                 paramName: 'file',
                 maxFilesize: 1024,
                 timeout: 0,
                 acceptedFiles: type === 'imagenes' ? '.jpg,.jpeg,.png,.webp,.gif' : '.pdf,.doc,.docx,.xls,.xlsx,.zip,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.webp,.gif',
                 params: {
+                    action: 'gmp_upload',
                     nonce: gmpAdmin.nonce,
                     file_type: type,
                 },
+                withCredentials: true,
                 sending: function (file, xhr, formData) {
                     const folder = $(selectors.folderSelect).val();
                     if (!folder) {
