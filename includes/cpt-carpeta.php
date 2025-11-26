@@ -38,28 +38,3 @@ function cmp_register_carpeta_cpt() {
     register_post_type('carpeta_media', $args);
 }
 add_action('init', 'cmp_register_carpeta_cpt');
-
-/**
- * Agrega columna de shortcodes para facilitar su copia.
- */
-function cmp_carpeta_columns($columns) {
-    $columns['cmp_shortcodes'] = __('Shortcodes', 'carpetas-multimedia-pro');
-    return $columns;
-}
-add_filter('manage_carpeta_media_posts_columns', 'cmp_carpeta_columns');
-
-/**
- * Rellena la columna con los dos shortcodes disponibles.
- */
-function cmp_carpeta_columns_content($column, $post_id) {
-    if ($column !== 'cmp_shortcodes') {
-        return;
-    }
-
-    $grid   = sprintf('[cmp_carpeta_grid id="%d"]', $post_id);
-    $slider = sprintf('[cmp_carpeta_slider id="%d"]', $post_id);
-
-    echo '<code>' . esc_html($grid) . '</code><br />';
-    echo '<code>' . esc_html($slider) . '</code>';
-}
-add_action('manage_carpeta_media_posts_custom_column', 'cmp_carpeta_columns_content', 10, 2);

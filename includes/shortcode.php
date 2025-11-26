@@ -45,8 +45,6 @@ function cmp_carpeta_grid_shortcode($atts) {
         return '';
     }
 
-    cmp_enqueue_frontend_assets();
-
     $images    = (array) get_post_meta($post_id, CMP_IMAGES_META, true);
     $documents = (array) get_post_meta($post_id, CMP_DOCUMENTS_META, true);
     $limit     = absint($atts['perpage']);
@@ -66,17 +64,11 @@ function cmp_carpeta_grid_shortcode($atts) {
         </div>
         <?php if ($remaining > 0) : ?>
             <button class="cmp-btn cmp-load-more" data-offset="<?php echo esc_attr($limit); ?>"><?php esc_html_e('Cargar más', 'carpetas-multimedia-pro'); ?></button>
-        <?php elseif (empty($images)) : ?>
-            <p class="cmp-empty"><?php esc_html_e('Esta carpeta aún no tiene imágenes.', 'carpetas-multimedia-pro'); ?></p>
         <?php endif; ?>
     </div>
-    <div class="cmp-documents" data-post="<?php echo esc_attr($post_id); ?>" data-limit="<?php echo esc_attr($limit); ?>">
-        <?php echo cmp_render_documents(array_slice($documents, 0, $limit)); ?>
-    </div>
+    <?php echo cmp_render_documents(array_slice($documents, 0, $limit)); ?>
     <?php if (max(0, count($documents) - $limit) > 0) : ?>
         <button class="cmp-btn cmp-load-more-docs" data-offset="<?php echo esc_attr($limit); ?>" data-post="<?php echo esc_attr($post_id); ?>" data-limit="<?php echo esc_attr($limit); ?>"><?php esc_html_e('Cargar más documentos', 'carpetas-multimedia-pro'); ?></button>
-    <?php elseif (empty($documents)) : ?>
-        <p class="cmp-empty"><?php esc_html_e('Esta carpeta aún no tiene documentos.', 'carpetas-multimedia-pro'); ?></p>
     <?php endif; ?>
     <?php
     return ob_get_clean();
@@ -96,8 +88,6 @@ function cmp_carpeta_slider_shortcode($atts) {
     if (!$post_id) {
         return '';
     }
-
-    cmp_enqueue_frontend_assets();
 
     $images    = (array) get_post_meta($post_id, CMP_IMAGES_META, true);
     $documents = (array) get_post_meta($post_id, CMP_DOCUMENTS_META, true);
@@ -125,17 +115,11 @@ function cmp_carpeta_slider_shortcode($atts) {
         </div>
         <?php if ($remaining > 0) : ?>
             <button class="cmp-btn cmp-load-more" data-offset="<?php echo esc_attr($limit); ?>"><?php esc_html_e('Cargar más', 'carpetas-multimedia-pro'); ?></button>
-        <?php elseif (empty($images)) : ?>
-            <p class="cmp-empty"><?php esc_html_e('Esta carpeta aún no tiene imágenes para mostrar en slider.', 'carpetas-multimedia-pro'); ?></p>
         <?php endif; ?>
     </div>
-    <div class="cmp-documents" data-post="<?php echo esc_attr($post_id); ?>" data-limit="<?php echo esc_attr($limit); ?>">
-        <?php echo cmp_render_documents(array_slice($documents, 0, $limit)); ?>
-    </div>
+    <?php echo cmp_render_documents(array_slice($documents, 0, $limit)); ?>
     <?php if (max(0, count($documents) - $limit) > 0) : ?>
         <button class="cmp-btn cmp-load-more-docs" data-offset="<?php echo esc_attr($limit); ?>" data-post="<?php echo esc_attr($post_id); ?>" data-limit="<?php echo esc_attr($limit); ?>"><?php esc_html_e('Cargar más documentos', 'carpetas-multimedia-pro'); ?></button>
-    <?php elseif (empty($documents)) : ?>
-        <p class="cmp-empty"><?php esc_html_e('Esta carpeta aún no tiene documentos.', 'carpetas-multimedia-pro'); ?></p>
     <?php endif; ?>
     <?php
     return ob_get_clean();

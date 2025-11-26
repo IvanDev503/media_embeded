@@ -9,12 +9,7 @@
 
     function initSwiper() {
         $('.cmp-swiper').each(function () {
-            if (this.cmpSwiper) {
-                this.cmpSwiper.update();
-                return;
-            }
-
-            this.cmpSwiper = new Swiper(this, {
+            new Swiper(this, {
                 slidesPerView: 1,
                 spaceBetween: 20,
                 loop: true,
@@ -85,7 +80,7 @@
     function loadMoreDocs(button) {
         const offset = parseInt(button.data('offset'), 10);
         const limit = parseInt(button.data('limit'), 10);
-        const docWrap = button.prevAll('.cmp-documents').first();
+        const docWrap = $('.cmp-documents').last();
         $.get(cmp_ajax.ajaxurl, {
             action: 'cmp_load_media',
             nonce: cmp_ajax.nonce,
