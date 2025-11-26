@@ -7,103 +7,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!defined('CMP_MAX_UPLOAD_BYTES')) {
-    define('CMP_MAX_UPLOAD_BYTES', 1073741824); // 1 GB
-}
-
-/**
- * Agrega un adjunto a la metabox correspondiente evitando duplicados.
- */
-function cmp_attach_to_meta($post_id, $attachment_id, $type) {
-    $meta_key = $type === 'image' ? CMP_IMAGES_META : CMP_DOCUMENTS_META;
-    $current  = (array) get_post_meta($post_id, $meta_key, true);
-    $current[] = $attachment_id;
-    update_post_meta($post_id, $meta_key, array_values(array_unique(array_map('absint', $current))));
-}
-
-/**
- * Procesa un ZIP y devuelve los adjuntos creados.
- */
-function cmp_process_zip($zip_path, $post_id, $image_mimes, $document_mimes) {
-    $zip = new ZipArchive();
-    $created = [];
-
-    if ($zip->open($zip_path) !== true) {
-        return $created;
-    }
-
-    for ($i = 0; $i < $zip->numFiles; $i++) {
-        $stat = $zip->statIndex($i);
-        if (!$stat || substr($stat['name'], -1) === '/') {
-            continue;
-        }
-
-        $fileinfo = pathinfo($stat['name']);
-        $ext      = $fileinfo['extension'] ?? '';
-        $filename = $fileinfo['basename'] ?? 'archivo';
-        $mime     = wp_check_filetype($filename)['type'];
-
-        $target_type = in_array($mime, $image_mimes, true) ? 'image' : (in_array($mime, $document_mimes, true) ? 'document' : '');
-        if (!$target_type) {
-            continue;
-        }
-
-        $stream = $zip->getStream($stat['name']);
-        if (!$stream) {
-            continue;
-        }
-
-        $temp_file = wp_tempnam($filename);
-        if (!$temp_file) {
-            fclose($stream);
-            continue;
-        }
-
-        $dest = fopen($temp_file, 'w');
-        if (!$dest) {
-            fclose($stream);
-            unlink($temp_file);
-            continue;
-        }
-
-        stream_copy_to_stream($stream, $dest);
-        fclose($stream);
-        fclose($dest);
-
-        if (filesize($temp_file) > CMP_MAX_UPLOAD_BYTES) {
-            unlink($temp_file);
-            continue;
-        }
-
-        $sideload = [
-            'name'     => sanitize_file_name($filename),
-            'type'     => $mime,
-            'tmp_name' => $temp_file,
-            'size'     => filesize($temp_file),
-            'error'    => 0,
-        ];
-
-        $attach_id = media_handle_sideload($sideload, $post_id, '', ['test_form' => false]);
-        if (is_wp_error($attach_id)) {
-            unlink($temp_file);
-            continue;
-        }
-
-        cmp_attach_to_meta($post_id, $attach_id, $target_type);
-
-        $created[] = [
-            'attachment_id' => $attach_id,
-            'preview'       => $target_type === 'image' ? wp_get_attachment_image_url($attach_id, 'medium') : wp_mime_type_icon($attach_id),
-            'title'         => get_the_title($attach_id),
-            'type'          => $target_type,
-        ];
-    }
-
-    $zip->close();
-
-    return $created;
-}
-
 /**
  * Carga de archivos vía Dropzone.
  */
@@ -121,25 +24,12 @@ function cmp_upload_file() {
         wp_send_json_error(['message' => __('No se envió archivo', 'carpetas-multimedia-pro')]);
     }
 
-    $image_mimes    = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    $document_mimes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.ms-powerpoint',
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'application/zip',
-        'application/x-zip-compressed',
-        'application/x-rar-compressed',
-    ];
-
-    $allowed_mimes = $filetype === 'image' ? $image_mimes : $document_mimes;
-
-    if (!empty($_FILES['file']['size']) && intval($_FILES['file']['size']) > CMP_MAX_UPLOAD_BYTES) {
-        wp_send_json_error(['message' => __('El archivo excede el límite de 1GB', 'carpetas-multimedia-pro')]);
-    }
+    $allowed_mimes = $filetype === 'image'
+        ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        : ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed'];
 
     if (!in_array($_FILES['file']['type'], $allowed_mimes, true)) {
         wp_send_json_error(['message' => __('Tipo de archivo no permitido', 'carpetas-multimedia-pro')]);
@@ -156,21 +46,6 @@ function cmp_upload_file() {
         wp_send_json_error(['message' => $file['error']]);
     }
 
-    $is_zip = in_array($file['type'], ['application/zip', 'application/x-zip-compressed'], true);
-
-    if ($is_zip) {
-        $items = cmp_process_zip($file['file'], $post_id, $image_mimes, $document_mimes);
-        @unlink($file['file']);
-
-        if (empty($items)) {
-            wp_send_json_error(['message' => __('No se pudo extraer un contenido válido del ZIP', 'carpetas-multimedia-pro')]);
-        }
-
-        wp_send_json_success([
-            'items' => $items,
-        ]);
-    }
-
     $attachment = [
         'post_mime_type' => $file['type'],
         'post_title'     => sanitize_file_name(pathinfo($file['file'], PATHINFO_FILENAME)),
@@ -185,7 +60,10 @@ function cmp_upload_file() {
 
     wp_update_attachment_metadata($attach_id, wp_generate_attachment_metadata($attach_id, $file['file']));
 
-    cmp_attach_to_meta($post_id, $attach_id, $filetype === 'image' ? 'image' : 'document');
+    $meta_key = $filetype === 'image' ? CMP_IMAGES_META : CMP_DOCUMENTS_META;
+    $current  = (array) get_post_meta($post_id, $meta_key, true);
+    $current[] = $attach_id;
+    update_post_meta($post_id, $meta_key, array_values(array_unique(array_map('absint', $current))));
 
     $preview = $filetype === 'image' ? wp_get_attachment_image_url($attach_id, 'medium') : wp_mime_type_icon($attach_id);
 
@@ -193,7 +71,6 @@ function cmp_upload_file() {
         'attachment_id' => $attach_id,
         'preview'       => $preview,
         'title'         => get_the_title($attach_id),
-        'type'          => $filetype === 'image' ? 'image' : 'document',
     ]);
 }
 add_action('wp_ajax_cmp_upload_file', 'cmp_upload_file');

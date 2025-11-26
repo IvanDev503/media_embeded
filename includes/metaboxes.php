@@ -44,8 +44,6 @@ function cmp_admin_assets($hook) {
     wp_localize_script('cmp-admin', 'cmp_admin_ajax', [
         'ajaxurl' => admin_url('admin-ajax.php'),
         'nonce'   => wp_create_nonce('cmp_admin_nonce'),
-        'too_big' => __('El archivo excede el límite de 1GB o el permitido por el servidor.', 'carpetas-multimedia-pro'),
-        'copied'  => __('Shortcode copiado', 'carpetas-multimedia-pro'),
     ]);
 }
 add_action('admin_enqueue_scripts', 'cmp_admin_assets');
@@ -61,23 +59,15 @@ function cmp_render_metabox($post) {
     <div class="cmp-metabox-wrapper">
         <div class="cmp-dropzone" id="cmp-dropzone-images" data-type="image" data-post="<?php echo esc_attr($post->ID); ?>">
             <h4><?php esc_html_e('Arrastra tus imágenes aquí', 'carpetas-multimedia-pro'); ?></h4>
-            <p><?php esc_html_e('Formatos permitidos: JPG, PNG, GIF, WebP. Límite 1GB por archivo (o el límite configurado en el servidor).', 'carpetas-multimedia-pro'); ?></p>
-            <div class="cmp-progress" aria-hidden="true">
-                <div class="cmp-progress-bar"></div>
-                <span class="cmp-progress-text">0%</span>
-            </div>
+            <p><?php esc_html_e('Formatos permitidos: JPG, PNG, GIF, WebP.', 'carpetas-multimedia-pro'); ?></p>
         </div>
 
         <div class="cmp-dropzone" id="cmp-dropzone-documents" data-type="document" data-post="<?php echo esc_attr($post->ID); ?>">
             <h4><?php esc_html_e('Arrastra tus documentos aquí', 'carpetas-multimedia-pro'); ?></h4>
-            <p><?php esc_html_e('Formatos permitidos: PDF, DOCX, XLSX, ZIP, PPTX. Límite 1GB por archivo (o el límite configurado en el servidor).', 'carpetas-multimedia-pro'); ?></p>
-            <div class="cmp-progress" aria-hidden="true">
-                <div class="cmp-progress-bar"></div>
-                <span class="cmp-progress-text">0%</span>
-            </div>
+            <p><?php esc_html_e('Formatos permitidos: PDF, DOCX, XLSX, ZIP, PPTX.', 'carpetas-multimedia-pro'); ?></p>
         </div>
 
-        <div class="cmp-file-list" data-type="image">
+        <div class="cmp-file-list">
             <h4><?php esc_html_e('Imágenes cargadas', 'carpetas-multimedia-pro'); ?></h4>
             <div class="cmp-file-grid">
                 <?php foreach ($images as $image_id) :
@@ -91,7 +81,7 @@ function cmp_render_metabox($post) {
             </div>
         </div>
 
-        <div class="cmp-file-list" data-type="document">
+        <div class="cmp-file-list">
             <h4><?php esc_html_e('Documentos cargados', 'carpetas-multimedia-pro'); ?></h4>
             <div class="cmp-file-grid">
                 <?php foreach ($documents as $doc_id) :
@@ -105,25 +95,6 @@ function cmp_render_metabox($post) {
                     </div>
                 <?php endforeach; ?>
             </div>
-        </div>
-
-        <div class="cmp-shortcodes">
-            <h4><?php esc_html_e('Shortcodes disponibles para esta carpeta', 'carpetas-multimedia-pro'); ?></h4>
-            <p><?php esc_html_e('Copia y pega en cualquier página o entrada para mostrar este contenido.', 'carpetas-multimedia-pro'); ?></p>
-            <label>
-                <?php esc_html_e('Grid de imágenes/documentos', 'carpetas-multimedia-pro'); ?>
-                <div class="cmp-shortcode-row">
-                    <input type="text" readonly value="[cmp_carpeta_grid id=&quot;<?php echo esc_attr($post->ID); ?>&quot;]" class="cmp-shortcode-field" />
-                    <button type="button" class="button cmp-copy-shortcode"><?php esc_html_e('Copiar', 'carpetas-multimedia-pro'); ?></button>
-                </div>
-            </label>
-            <label>
-                <?php esc_html_e('Slider de imágenes/documentos', 'carpetas-multimedia-pro'); ?>
-                <div class="cmp-shortcode-row">
-                    <input type="text" readonly value="[cmp_carpeta_slider id=&quot;<?php echo esc_attr($post->ID); ?>&quot;]" class="cmp-shortcode-field" />
-                    <button type="button" class="button cmp-copy-shortcode"><?php esc_html_e('Copiar', 'carpetas-multimedia-pro'); ?></button>
-                </div>
-            </label>
         </div>
     </div>
     <?php
